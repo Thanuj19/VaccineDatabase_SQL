@@ -1,0 +1,53 @@
+-- Create the COVID vaccine tracking database
+CREATE DATABASE COVID_vaccine_tracking;
+
+-- Use the COVID vaccine tracking database
+USE COVID_vaccine_tracking;
+
+-- Create table to store student information
+CREATE TABLE Students (
+    StudentID INT AUTO_INCREMENT PRIMARY KEY,
+    StudentName VARCHAR(100) NOT NULL,
+    Age INT,
+    Grade VARCHAR(10),
+    GuardianName VARCHAR(100),
+    ContactInfo VARCHAR(20)
+);
+
+-- Create table to store vaccination records
+CREATE TABLE VaccinationRecords (
+    RecordID INT AUTO_INCREMENT PRIMARY KEY,
+    StudentID INT,
+    VaccinationDate DATE,
+    VaccinationStatus ENUM('Yes', 'No') DEFAULT 'No',
+    CONSTRAINT fk_StudentID FOREIGN KEY (StudentID) REFERENCES Students(StudentID)
+);
+
+-- Create table to store weekly vaccination schedule
+CREATE TABLE WeeklySchedule (
+    ScheduleID INT AUTO_INCREMENT PRIMARY KEY,
+    WeekStartDate DATE,
+    WeekEndDate DATE
+);
+
+-- Create table to associate students with the weekly vaccination schedule
+CREATE TABLE StudentWeeklySchedule (
+    StudentID INT,
+    ScheduleID INT,
+    CONSTRAINT fk_StudentID_SWS FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_ScheduleID FOREIGN KEY (ScheduleID) REFERENCES WeeklySchedule(ScheduleID)
+);
+
+-- Create table to store vaccination details for each day of the week
+CREATE TABLE DailyVaccination (
+    VaccinationID INT AUTO_INCREMENT PRIMARY KEY,
+    StudentID INT,
+    ScheduleID INT,
+    VaccinationDate DATE,
+    VaccinationTime TIME,
+    VaccinationCenter VARCHAR(100),
+    BatchNumber VARCHAR(50),
+    VaccinationStatus ENUM('Yes', 'No') DEFAULT 'No',
+    CONSTRAINT fk_StudentID_DV FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_ScheduleID_DV FOREIGN KEY (ScheduleID) REFERENCES WeeklySchedule(ScheduleID)
+);
