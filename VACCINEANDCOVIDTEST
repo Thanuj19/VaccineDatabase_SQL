@@ -1,53 +1,91 @@
--- Create the COVID vaccine tracking database
-CREATE DATABASE COVID_vaccine_tracking;
+-- Create table to store vaccination types
+CREATE TABLE IF NOT EXISTS VaccineTypes (
+    VaccineTypeID INT AUTO_INCREMENT PRIMARY KEY,
+    VaccineName VARCHAR(100) NOT NULL,
+    Description TEXT
+);
 
--- Use the COVID vaccine tracking database
-USE COVID_vaccine_tracking;
+-- Create table to store vaccination administration records
+CREATE TABLE IF NOT EXISTS VaccinationAdministration (
+    AdministrationID INT AUTO_INCREMENT PRIMARY KEY,
+    StudentID INT,
+    VaccineTypeID INT,
+    AdministrationDate DATE,
+    AdministrationTime TIME,
+    VaccinationCenterID INT,
+    HealthcareProfessionalID INT,
+    CONSTRAINT fk_StudentID_VA FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_VaccineTypeID_VA FOREIGN KEY (VaccineTypeID) REFERENCES VaccineTypes(VaccineTypeID),
+    CONSTRAINT fk_VaccinationCenterID_VA FOREIGN KEY (VaccinationCenterID) REFERENCES VaccinationCenters(CenterID),
+    CONSTRAINT fk_HealthcareProfessionalID_VA FOREIGN KEY (HealthcareProfessionalID) REFERENCES HealthcareProfessionals(ProfessionalID)
+);
 
--- Create table to store student information
-CREATE TABLE Students (
-    StudentID INT AUTO_INCREMENT PRIMARY KEY,
-    StudentName VARCHAR(100) NOT NULL,
-    Age INT,
-    Grade VARCHAR(10),
-    GuardianName VARCHAR(100),
+-- Create table to store parent/guardian information
+CREATE TABLE IF NOT EXISTS Guardians (
+    GuardianID INT AUTO_INCREMENT PRIMARY KEY,
+    GuardianName VARCHAR(100) NOT NULL,
+    Relationship VARCHAR(50),
     ContactInfo VARCHAR(20)
 );
 
--- Create table to store vaccination records
-CREATE TABLE VaccinationRecords (
-    RecordID INT AUTO_INCREMENT PRIMARY KEY,
+-- Create table to associate students with their guardians
+CREATE TABLE IF NOT EXISTS StudentGuardians (
     StudentID INT,
-    VaccinationDate DATE,
-    VaccinationStatus ENUM('Yes', 'No') DEFAULT 'No',
-    CONSTRAINT fk_StudentID FOREIGN KEY (StudentID) REFERENCES Students(StudentID)
+    GuardianID INT,
+    CONSTRAINT fk_StudentID_SG FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_GuardianID_SG FOREIGN KEY (GuardianID) REFERENCES Guardians(GuardianID)
 );
 
--- Create table to store weekly vaccination schedule
-CREATE TABLE WeeklySchedule (
-    ScheduleID INT AUTO_INCREMENT PRIMARY KEY,
-    WeekStartDate DATE,
-    WeekEndDate DATE
+-- Create table to store vaccination side effects
+CREATE TABLE IF NOT EXISTS SideEffects (
+    SideEffectID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Description TEXT
 );
 
--- Create table to associate students with the weekly vaccination schedule
-CREATE TABLE StudentWeeklySchedule (
+-- Create table to record student vaccination side effects
+CREATE TABLE IF NOT EXISTS StudentSideEffects (
     StudentID INT,
-    ScheduleID INT,
-    CONSTRAINT fk_StudentID_SWS FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
-    CONSTRAINT fk_ScheduleID FOREIGN KEY (ScheduleID) REFERENCES WeeklySchedule(ScheduleID)
+    SideEffectID INT,
+    AdministrationID INT,
+    CONSTRAINT fk_StudentID_SSE FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_SideEffectID_SSE FOREIGN KEY (SideEffectID) REFERENCES SideEffects(SideEffectID),
+    CONSTRAINT fk_AdministrationID_SSE FOREIGN KEY (AdministrationID) REFERENCES VaccinationAdministration(AdministrationID)
 );
 
--- Create table to store vaccination details for each day of the week
-CREATE TABLE DailyVaccination (
-    VaccinationID INT AUTO_INCREMENT PRIMARY KEY,
-    StudentID INT,
-    ScheduleID INT,
-    VaccinationDate DATE,
-    VaccinationTime TIME,
-    VaccinationCenter VARCHAR(100),
-    BatchNumber VARCHAR(50),
-    VaccinationStatus ENUM('Yes', 'No') DEFAULT 'No',
-    CONSTRAINT fk_StudentID_DV FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
-    CONSTRAINT fk_ScheduleID_DV FOREIGN KEY (ScheduleID) REFERENCES WeeklySchedule(ScheduleID)
+-- Create table to store vaccination eligibility criteria
+CREATE TABLE IF NOT EXISTS EligibilityCriteria (
+    CriteriaID INT AUTO_INCREMENT PRIMARY KEY,
+    CriteriaName VARCHAR(100) NOT NULL,
+    Description TEXT
 );
+
+-- Create table to record student eligibility for vaccination
+CREATE TABLE IF NOT EXISTS StudentEligibility (
+    StudentID INT,
+    CriteriaID INT,
+    CONSTRAINT fk_StudentID_SE FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    CONSTRAINT fk_CriteriaID_SE FOREIGN KEY (CriteriaID) REFERENCES EligibilityCriteria(CriteriaID)
+);
+
+-- Create table to store school staff information
+CREATE TABLE IF NOT EXISTS SchoolStaff (
+    StaffID INT AUTO_INCREMENT PRIMARY KEY,
+    StaffName VARCHAR(100) NOT NULL,
+    Position VARCHAR(100),
+    ContactInfo VARCHAR(20)
+);
+
+-- Create table to log interactions between school staff and students
+CREATE TABLE IF NOT EXISTS StaffStudentInteractions (
+    InteractionID INT AUTO_INCREMENT PRIMARY KEY,
+    StaffID INT,
+    StudentID INT,
+    InteractionDate DATETIME,
+    InteractionType ENUM('Counseling', 'Academic Support', 'Other'),
+    CONSTRAINT fk_StaffID_SSI FOREIGN KEY (StaffID) REFERENCES SchoolStaff(StaffID),
+    CONSTRAINT fk_StudentID_SSI FOREIGN KEY (StudentID) REFERENCES Students(StudentID)
+);
+
+
+
